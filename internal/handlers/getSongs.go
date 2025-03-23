@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	er "LibMusic/internal/logger/err"
 	"LibMusic/internal/models"
 	"fmt"
 	"log"
@@ -9,18 +8,6 @@ import (
 	"strconv"
 	"strings"
 )
-
-func (h *Handler) GetSongssss(w http.ResponseWriter, r *http.Request) {
-	// Get all songs from db
-	songs, err := h.storage.GetAllSongs()
-	if err != nil {
-		h.log.Error("failed to get all songs", er.Err(err))
-		respondWithError(w, http.StatusInternalServerError, "failed to get all songs")
-		return
-	}
-
-	respondWithJSON(w, http.StatusOK, songs)
-}
 
 func (h *Handler) GetSongs(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
