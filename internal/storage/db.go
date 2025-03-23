@@ -53,31 +53,20 @@ func Migrate(db *sql.DB, config *config.Config, log *slog.Logger) error {
 }
 
 func New(config *config.Config, log *slog.Logger) (*Storage, error) {
-	connStr := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable", config.DBUser, config.DBPass, config.DBName)
+	connStr := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable", config.DBHost, config.DBUser, config.DBPass, config.DBName)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
-	// stmt, err := db.Prepare(`CREATE TABLE IF NOT EXISTS songs (
-	// 	id SERIAL PRIMARY KEY,
-	// 	group_name TEXT NOT NULL,
-	// 	song_name TEXT NOT NULL,
-	// 	release_date DATE,
-	// 	text TEXT,
-	// 	link TEXT
-	// );`)
-
-	// if err != nil {
-	// 	return nil, fmt.Errorf("%w", err)
-	// }
-	// _, err = stmt.Exec()
-	// if err != nil {
-	// 	return nil, fmt.Errorf("%w", err)
-	// }
 
 	err = Migrate(db, config, log)
 	if err != nil {
-		return nil, fmt.Errorf("failed to migrate: %w", err)
+		log.Error("failed to migrate %s", er.Err(err))
+		err := SaveMyLife(db)
+		if err != nil {
+			log.Error("failed to migrate %s", er.Err(err))
+			return nil, fmt.Errorf("failed to migrate: %w", err)
+		}
 	}
 
 	stmt, err := db.Prepare(`SELECT song_name FROM songs;`)
@@ -217,5 +206,26 @@ func (s *Storage) Custom(query string, args ...any) (*sql.Rows, error) {
 		return nil, fmt.Errorf("failed to query: %w", err)
 	}
 	return rows, nil
+
+}
+
+func SaveMyLife(db *sql.DB) error {
+	stmt, err := db.Prepare(`CREATE TABLE IF NOT EXISTS songs (
+		id SERIAL PRIMARY KEY,
+		group_name TEXT NOT NULL,
+		song_name TEXT NOT NULL,
+		release_date DATE,
+		text TEXT,
+		link TEXT
+	);`)
+
+	if err != nil {
+		return fmt.Errorf("%w", err)
+	}
+	_, err = stmt.Exec()
+	if err != nil {
+		return fmt.Errorf("%w", err)
+	}
+	return nil
 
 }

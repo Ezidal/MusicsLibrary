@@ -21,8 +21,8 @@ This project is a Songs Library API built with Go. It allows you to manage a lib
 1. Clone the repository:
 
     ```sh
-    git clone https://github.com/yourusername/songs-library-api.git
-    cd songs-library-api
+    git clone https://github.com/Ezidal/MusicsLibrary.git
+    cd MusicsLibrary
     ```
 
 2. Copy the example environment file and update it with your configuration:
@@ -30,31 +30,27 @@ This project is a Songs Library API built with Go. It allows you to manage a lib
     ```sh
     cp .env.example .env
     ```
-    !!! change the address of the external api !!!
+   #### !!! change the address of the external api !!!
 
-3. Start the PostgreSQL database using Docker Compose:
+### Start with docker
+1. Building image with app
+
+    ```sh
+    docker build -t libmusic .
+    ```
+
+2. Start compose with app
 
     ```sh
     docker-compose up -d
     ```
 
-4. Install Go dependencies:
-
-    ```sh
-    go mod tidy
-    ```
-
-5. Run the database migrations:
-
-    ```sh
-    go run cmd/onlineLibrary/main.go
-    ```
-
-### Running the Server
+### Running the Server without docker
 
 Start the server:
 
 ```sh
+go mod tidy
 go run cmd/onlineLibrary/main.go
 ```
 
@@ -79,16 +75,13 @@ http://localhost:8080/swagger/index.html
 ### Example Requests
 
 #### Add a Song
-
+work only with external api
 ```sh
 curl -X POST http://localhost:8080/songs \
 -H "Content-Type: application/json" \
 -d '{
-  "group_name": "The Beatles",
-  "song_name": "Hey Jude",
-  "release_date": "1968-08-26",
-  "text": "Hey Jude, don't make it bad...",
-  "link": "https://example.com/hey-jude"
+  "group_name": "Group",
+  "song_name": "Song",
 }'
 ```
 
@@ -123,11 +116,3 @@ curl -X PUT http://localhost:8080/songs/1 \
 ```sh
 curl -X DELETE http://localhost:8080/songs/1
 ```
-
-## Contributing
-
-Contributions are welcome! Please open an issue or submit a pull request.
-
-## License
-
-This project is licensed under the MIT License.

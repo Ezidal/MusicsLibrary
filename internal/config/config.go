@@ -31,7 +31,7 @@ func LoadConfig() *Config {
 
 	config := &Config{
 		ServerPort:     getEnv("SERVER_PORT", "8080"),
-		DBHost:         getEnv("DB_HOST", "localhost"),
+		DBHost:         getEnv("DB_HOST", "postgres"),
 		DBPort:         getEnv("DB_PORT", "5432"),
 		DBUser:         getEnv("DB_USER", "user"),
 		DBPass:         getEnv("DB_PASSWORD", "user"),
@@ -44,8 +44,9 @@ func LoadConfig() *Config {
 
 func getEnv(key string, defaultVal string) string {
 	if value, exists := os.LookupEnv(key); exists {
+		log.Printf("Key: %s, Value: %s\n", key, value)
 		return value
 	}
-
+	log.Printf("Key: %s, Value: %s\n", key, defaultVal)
 	return defaultVal
 }

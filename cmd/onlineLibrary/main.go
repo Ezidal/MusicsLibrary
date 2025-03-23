@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"os"
 
-	_ "LibMusic/docs" // Импортируем сгенерированную документацию Swagger
+	 _ "LibMusic/docs" // Импортируем сгенерированную документацию Swagger
 
 	"github.com/gorilla/mux"
 	httpSwagger "github.com/swaggo/http-swagger"
