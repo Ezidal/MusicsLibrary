@@ -15,7 +15,6 @@ This project is a Songs Library API built with Go. It allows you to manage a lib
 
 - Go 1.23.5 or later
 - Docker
-- Docker Compose
 
 ### Installation
 
