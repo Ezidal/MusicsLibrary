@@ -30,6 +30,7 @@ This project is a Songs Library API built with Go. It allows you to manage a lib
     ```sh
     cp .env.example .env
     ```
+    !!! change the address of the external api !!!
 
 3. Start the PostgreSQL database using Docker Compose:
 
