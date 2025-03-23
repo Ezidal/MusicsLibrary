@@ -8,6 +8,18 @@ import (
 	"strings"
 )
 
+// DeleteSong godoc
+// @Summary Удалить песню
+// @Description Удаляет песню из библиотеки по её ID
+// @Tags songs
+// @Accept json
+// @Produce json
+// @Param id path int true "ID песни"
+// @Success 200 {object} models.Response
+// @Failure 400 {object} models.Response
+// @Failure 404 {object} models.Response
+// @Failure 500 {object} models.Response
+// @Router /songs/{id} [delete]
 func (h *Handler) DeleteSong(w http.ResponseWriter, r *http.Request) {
 	// id := r.URL.Query().Get("id")
 	path := strings.TrimPrefix(r.URL.Path, "/songs/")

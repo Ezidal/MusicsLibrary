@@ -9,6 +9,22 @@ import (
 	"strings"
 )
 
+// GetSongs godoc
+// @Summary Получить список песен
+// @Description Возвращает список песен с возможностью фильтрации и пагинации
+// @Tags songs
+// @Accept json
+// @Produce json
+// @Param group query string false "Фильтр по названию группы"
+// @Param song query string false "Фильтр по названию песни"
+// @Param releaseDate query string false "Фильтр по дате выпуска (формат: YYYY-MM-DD)"
+// @Param page query int false "Номер страницы" default(1)
+// @Param limit query int false "Количество песен на странице" default(10)
+// @Success 200 {array} models.Song
+// @Failure 400 {object} models.Response
+// @Failure 404 {object} models.Response
+// @Failure 500 {object} models.Response
+// @Router /songs [get]
 func (h *Handler) GetSongs(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	page, _ := strconv.Atoi(query.Get("page"))
@@ -63,7 +79,7 @@ func (h *Handler) GetSongs(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var song models.Song
 		err := rows.Scan(
-			&song.Id,
+			&song.ID,
 			&song.Group,
 			&song.SongName,
 			&song.ReleaseDate,

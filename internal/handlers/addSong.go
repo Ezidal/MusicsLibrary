@@ -12,6 +12,17 @@ import (
 	"time"
 )
 
+// AddSong godoc
+// @Summary Добавить новую песню
+// @Description Добавляет новую песню в библиотеку, используя данные из внешнего API
+// @Tags songs
+// @Accept json
+// @Produce json
+// @Param input body models.SongRequest true "Данные для добавления песни"
+// @Success 200 {object} models.Response
+// @Failure 400 {object} models.Response
+// @Failure 500 {object} models.Response
+// @Router /songs [post]
 func (h *Handler) AddSong(w http.ResponseWriter, r *http.Request) {
 	var song models.Song
 	var songReq models.SongRequest

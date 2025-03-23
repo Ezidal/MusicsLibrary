@@ -10,46 +10,59 @@ import (
 	"net/http"
 	"os"
 
+	_ "LibMusic/docs" // Импортируем сгенерированную документацию Swagger
+
 	"github.com/gorilla/mux"
+	httpSwagger "github.com/swaggo/http-swagger"
+	// Пакет для Swagger UI
 )
 
+// @title Songs Library API
+// @version 1.0
+// @description API для управления библиотекой песен
+// @host localhost:8080
+// @BasePath /
 func main() {
-	// Load config
+	// Загрузка конфигурации
 	conf := config.LoadConfig()
 
-	// Init logger
+	// Инициализация логгера
 	log := logger.SetLogger(conf.Environment)
 	log.Info("Logger starting, config setup")
 
-	log.Debug("addres external api: " + conf.ExternalApiUrl)
+	log.Debug("address external api: " + conf.ExternalApiUrl)
 
-	// Init db
+	// Инициализация базы данных
 	db, err := storage.New(conf, log)
 	if err != nil {
 		log.Error("failed to init db", er.Err(err))
 		os.Exit(1)
 	}
-	log.Info("Sucsess connect to db: " + conf.DBHost + ":" + conf.DBPort)
+	log.Info("Success connect to db: " + conf.DBHost + ":" + conf.DBPort)
 
-	// Init server
+	// Инициализация роутера
 	r := mux.NewRouter()
-	// Add middleware
+
+	// Добавление middleware
 	r.Use(middleware.LoggerMiddleware(log))
 
-	// Init Megahandler
+	// Инициализация мега-хендлера
 	handler := handlers.NewHandler(db, log, conf)
-	// Add handlers
+
+	// Добавление обработчиков
 	r.HandleFunc("/songs", handler.GetSongs).Methods("GET")
 	r.HandleFunc("/songs/{id}/text", handler.GetSongText).Methods("GET")
 	r.HandleFunc("/songs/{id}", handler.DeleteSong).Methods("DELETE")
 	r.HandleFunc("/songs/{id}", handler.UpdateSong).Methods("PUT")
 	r.HandleFunc("/songs", handler.AddSong).Methods("POST")
 
-	// Start server
+	// Добавление Swagger UI
+	r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
+
+	// Запуск сервера
 	log.Info("Server starting on port: " + conf.ServerPort)
 	err = http.ListenAndServe(":"+conf.ServerPort, r)
 	if err != nil {
 		log.Error(err.Error())
 	}
-
 }

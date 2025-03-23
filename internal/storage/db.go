@@ -118,7 +118,7 @@ func (s *Storage) GetAllSongs() ([]models.Song, error) {
 	var songs []models.Song
 	for rows.Next() {
 		var song models.Song
-		err := rows.Scan(&song.Id, &song.Group, &song.SongName, &song.ReleaseDate, &song.Text, &song.Link)
+		err := rows.Scan(&song.ID, &song.Group, &song.SongName, &song.ReleaseDate, &song.Text, &song.Link)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan songs: %w", err)
 		}

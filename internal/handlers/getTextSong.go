@@ -8,6 +8,20 @@ import (
 	"strings"
 )
 
+// GetSongText godoc
+// @Summary Получить текст песни с пагинацией
+// @Description Возвращает текст песни, разбитый на куплеты, с поддержкой пагинации
+// @Tags songs
+// @Accept json
+// @Produce json
+// @Param id path int true "ID песни"
+// @Param page query int false "Номер страницы" default(1)
+// @Param limit query int false "Количество куплетов на странице" default(2)
+// @Success 200 {object} models.PaginatedVerses
+// @Failure 400 {object} models.Response
+// @Failure 404 {object} models.Response
+// @Failure 500 {object} models.Response
+// @Router /songs/{id}/text [get]
 func (h *Handler) GetSongText(w http.ResponseWriter, r *http.Request) {
 	path := strings.TrimPrefix(r.URL.Path, "/songs/")
 	parts := strings.Split(path, "/")
