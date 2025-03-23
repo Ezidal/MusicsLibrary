@@ -1,9 +1,9 @@
 package handlers
 
 import (
+	er "LibMusic/internal/logger/err"
 	"LibMusic/internal/models"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -53,7 +53,7 @@ func (h *Handler) GetSongs(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := h.storage.Custom(finalQuery, args...)
 	if err != nil {
-		log.Printf("Error querying songs: %v", err)
+		h.log.Error("Error getting songs", er.Err(err))
 		respondWithError(w, http.StatusInternalServerError, "Internal server error")
 		return
 	}
@@ -71,12 +71,17 @@ func (h *Handler) GetSongs(w http.ResponseWriter, r *http.Request) {
 			&song.Link,
 		)
 		if err != nil {
-			log.Printf("Error scanning song: %v", err)
+			h.log.Error("Error scanning song", er.Err(err))
 			respondWithError(w, http.StatusInternalServerError, "Internal server error")
 			return
 		}
 		songs = append(songs, song)
 	}
-
+	if len(songs) == 0 {
+		h.log.Info("No songs found")
+		respondWithError(w, http.StatusNotFound, "No songs found")
+		return
+	}
 	respondWithJSON(w, http.StatusOK, songs)
+	h.log.Info("Songs sent")
 }
