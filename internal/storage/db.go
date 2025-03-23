@@ -57,6 +57,8 @@ func New(config *config.Config) (*Storage, error) {
 		}
 		arrString = append(arrString, songName)
 	}
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(5)
 
 	return &Storage{db: db, arrString: arrString}, nil
 }
@@ -137,4 +139,23 @@ func (s *Storage) GetText(id int) (string, error) {
 		return "", fmt.Errorf("failed to get song text: %w", err)
 	}
 	return text, nil
+}
+
+func (s *Storage) UpdateSong(id int, song models.Song) error {
+	_, err := s.db.Exec(`UPDATE songs 
+		SET group_name = $1, song_name = $2, release_date = $3, text = $4, link = $5 
+		WHERE id = $6`, song.Group, song.SongName, song.ReleaseDate, song.Text, song.Link, id)
+	if err != nil {
+		return fmt.Errorf("failed to update song: %w", err)
+	}
+	return nil
+}
+
+func (s *Storage) Custom(query string, args ...any) (*sql.Rows, error) {
+	rows, err := s.db.Query(query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query: %w", err)
+	}
+	return rows, nil
+
 }

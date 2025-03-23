@@ -25,11 +25,11 @@ func (h *Handler) AddSong(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if song already exist
-	// if h.storage.SongExist(songReq.SongName) != nil {
-	// 	respondWithError(w, http.StatusBadRequest, "Song already exist")
-	// 	return
-	// }
-	// h.log.Debug("songReq: " + songReq.Group + " " + songReq.SongName)
+	if h.storage.SongExist(songReq.SongName) != nil {
+		respondWithError(w, http.StatusBadRequest, "Song already exist")
+		return
+	}
+	h.log.Debug("songReq: " + songReq.Group + " " + songReq.SongName)
 
 	params := url.Values{}
 	params.Add("group", songReq.Group)
@@ -75,7 +75,7 @@ func (h *Handler) AddSong(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	idStr := strconv.Itoa(int(id))
-	respondWithJSON(w, http.StatusOK, map[string]string{"message": "Added song: " + song.SongName, "id": idStr})
+	respondWithJSON(w, http.StatusOK, models.Response{Status: http.StatusOK, Message: "Song added, id: " + idStr})
 	h.log.Info("Song added, id: " + idStr)
 
 }

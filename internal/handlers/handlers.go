@@ -3,6 +3,7 @@ package handlers
 import (
 	"LibMusic/internal/config"
 	"LibMusic/internal/models"
+	"database/sql"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -24,6 +25,8 @@ type Storage interface {
 	SongExist(song string) error
 	DeleteSong(id int) error
 	GetText(id int) (string, error)
+	UpdateSong(id int, song models.Song) error
+	Custom(query string, args ...interface{}) (*sql.Rows, error)
 }
 
 type Handler struct {

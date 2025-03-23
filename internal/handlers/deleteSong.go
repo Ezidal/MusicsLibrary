@@ -2,6 +2,7 @@ package handlers
 
 import (
 	er "LibMusic/internal/logger/err"
+	"LibMusic/internal/models"
 	"net/http"
 	"strconv"
 	"strings"
@@ -28,6 +29,6 @@ func (h *Handler) DeleteSong(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusInternalServerError, "failed to delete song")
 		return
 	}
-	respondWithJSON(w, http.StatusOK, map[string]string{"message": "song deleted"})
+	respondWithJSON(w, http.StatusOK, models.Response{Status: http.StatusOK, Message: "song deleted" + id})
 	h.log.Info("song deleted: " + id)
 }

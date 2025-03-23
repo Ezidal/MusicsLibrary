@@ -15,8 +15,9 @@ type SongRequest struct {
 }
 
 type Response struct {
-	Error  string `json:"error,omitempty"`
-	Status int    `json:"status"`
+	Error   string `json:"error,omitempty"`
+	Status  int    `json:"status"`
+	Message string `json:"message,omitempty"`
 }
 
 type DetailSong struct {
