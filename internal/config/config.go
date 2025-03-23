@@ -35,7 +35,7 @@ func LoadConfig() *Config {
 		DBPort:         getEnv("DB_PORT", "5432"),
 		DBUser:         getEnv("DB_USER", "user"),
 		DBPass:         getEnv("DB_PASSWORD", "user"),
-		DBName:         getEnv("DB_NAME", "db"),
+		DBName:         getEnv("DB_NAME", "musicdb"),
 		Environment:    getEnv("ENVIRONMENT", "local"),
 		ExternalApiUrl: getEnv("EXTERNAL_API_URL", "http://localhost:8081") + "/info",
 	}

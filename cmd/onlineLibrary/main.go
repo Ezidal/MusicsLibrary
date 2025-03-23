@@ -24,7 +24,7 @@ func main() {
 	log.Debug("addres external api: " + conf.ExternalApiUrl)
 
 	// Init db
-	db, err := storage.New(conf)
+	db, err := storage.New(conf, log)
 	if err != nil {
 		log.Error("failed to init db", er.Err(err))
 		os.Exit(1)

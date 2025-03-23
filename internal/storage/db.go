@@ -2,11 +2,16 @@ package storage
 
 import (
 	"LibMusic/internal/config"
+	er "LibMusic/internal/logger/err"
 	"LibMusic/internal/models"
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"slices"
 
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
 )
 
@@ -15,36 +20,75 @@ type Storage struct {
 	arrString []string
 }
 
-func New(config *config.Config) (*Storage, error) {
+func Migrate(db *sql.DB, config *config.Config, log *slog.Logger) error {
+	driver, err := postgres.WithInstance(db, &postgres.Config{})
+	if err != nil {
+		log.Debug("failed to create migrate driver %s", er.Err(err))
+		return fmt.Errorf("failed to create migrate driver: %w", err)
+	}
+
+	m, err := migrate.NewWithDatabaseInstance(
+		"file://./migrations",
+		config.DBName,
+		driver,
+	)
+	if err != nil {
+		log.Debug("failed to initialize migrate %s", er.Err(err))
+		return fmt.Errorf("failed to initialize migrate: %w", err)
+	}
+
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		log.Debug("failed to apply migrations %s", er.Err(err))
+		return fmt.Errorf("failed to apply migrations: %w", err)
+	}
+
+	version, dirty, err := m.Version()
+	if err != nil && err != migrate.ErrNilVersion {
+		log.Debug("failed to get migration version %s", er.Err(err))
+		return fmt.Errorf("failed to get migration version: %w", err)
+	}
+
+	log.Info("Database migrations applied. Current version: %d, dirty: %v", version, dirty)
+	return nil
+}
+
+func New(config *config.Config, log *slog.Logger) (*Storage, error) {
 	connStr := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable", config.DBUser, config.DBPass, config.DBName)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
-	stmt, err := db.Prepare(`CREATE TABLE IF NOT EXISTS songs (
-		id SERIAL PRIMARY KEY,
-		group_name TEXT NOT NULL,
-		song_name TEXT NOT NULL,
-		release_date DATE,
-		text TEXT,
-		link TEXT
-	);`)
+	// stmt, err := db.Prepare(`CREATE TABLE IF NOT EXISTS songs (
+	// 	id SERIAL PRIMARY KEY,
+	// 	group_name TEXT NOT NULL,
+	// 	song_name TEXT NOT NULL,
+	// 	release_date DATE,
+	// 	text TEXT,
+	// 	link TEXT
+	// );`)
 
+	// if err != nil {
+	// 	return nil, fmt.Errorf("%w", err)
+	// }
+	// _, err = stmt.Exec()
+	// if err != nil {
+	// 	return nil, fmt.Errorf("%w", err)
+	// }
+
+	err = Migrate(db, config, log)
 	if err != nil {
-		return nil, fmt.Errorf("%w", err)
-	}
-	_, err = stmt.Exec()
-	if err != nil {
-		return nil, fmt.Errorf("%w", err)
+		return nil, fmt.Errorf("failed to migrate: %w", err)
 	}
 
-	stmt, err = db.Prepare(`SELECT song_name FROM songs;`)
+	stmt, err := db.Prepare(`SELECT song_name FROM songs;`)
 	if err != nil {
+		log.Debug("failed to prepare select songs %s", er.Err(err))
 		return nil, fmt.Errorf("%w", err)
 	}
 	defer stmt.Close()
 	rows, err := stmt.Query()
 	if err != nil {
+		log.Debug("failed to query select songs %s", er.Err(err))
 		return nil, fmt.Errorf("%w", err)
 	}
 	defer rows.Close()
@@ -53,6 +97,7 @@ func New(config *config.Config) (*Storage, error) {
 		var songName string
 		err := rows.Scan(&songName)
 		if err != nil {
+			log.Debug("failed to scan songs %s", er.Err(err))
 			return nil, fmt.Errorf("%w", err)
 		}
 		arrString = append(arrString, songName)
@@ -108,10 +153,25 @@ func (s *Storage) SongExist(song string) error {
 	return nil
 }
 
+func removeElementByValue(slice []string, value string) []string {
+	for i, v := range slice {
+		if v == value {
+			return append(slice[:i], slice[i+1:]...)
+		}
+	}
+	return slice // Если элемент не найден, возвращаем исходный срез
+}
+
 func (s *Storage) DeleteSong(id int) error {
 	if id <= 0 {
 		return fmt.Errorf("invalid song ID: %d", id)
 	}
+	var song string
+	err := s.db.QueryRow("SELECT song_name FROM songs WHERE id = $1", id).Scan(&song)
+	if err != nil {
+		return fmt.Errorf("failed to delete song: %w", err)
+	}
+	s.arrString = removeElementByValue(s.arrString, song)
 
 	result, err := s.db.Exec("DELETE FROM songs WHERE id = $1", id)
 	if err != nil {
