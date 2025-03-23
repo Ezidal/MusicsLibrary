@@ -15,7 +15,7 @@ type SongRequest struct {
 }
 
 type Response struct {
-	Error  string `json:"error",omitempty`
+	Error  string `json:"error,omitempty"`
 	Status int    `json:"status"`
 }
 
@@ -23,4 +23,11 @@ type DetailSong struct {
 	ReleaseDate string `json:"releaseDate"`
 	Text        string `json:"text"`
 	Link        string `json:"link"`
+}
+
+type PaginatedVerses struct {
+	Verses []string `json:"verses"`
+	Page   int      `json:"page"`
+	Limit  int      `json:"limit"`
+	Total  int      `json:"total"`
 }

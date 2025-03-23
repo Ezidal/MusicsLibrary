@@ -42,6 +42,7 @@ func New(config *config.Config) (*Storage, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}
+	defer stmt.Close()
 	rows, err := stmt.Query()
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
@@ -80,15 +81,22 @@ func (s *Storage) GetAllSongs() ([]models.Song, error) {
 	return songs, nil
 }
 
-func (s *Storage) AddSong(song models.Song) error {
+func (s *Storage) AddSong(song models.Song) (int64, error) {
 	s.arrString = append(s.arrString, song.SongName)
-	_, err := s.db.Exec("INSERT INTO songs (group_name, song_name, release_date, text, link) VALUES ($1, $2, $3, $4, $5)",
-		song.Group, song.SongName, song.ReleaseDate, song.Text, song.Link)
+
+	query := `
+		INSERT INTO songs (group_name, song_name, release_date, text, link)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id
+	`
+
+	var id int64
+	err := s.db.QueryRow(query, song.Group, song.SongName, song.ReleaseDate, song.Text, song.Link).Scan(&id)
 	if err != nil {
-		return fmt.Errorf("failed to add song: %w", err)
+		return 0, fmt.Errorf("failed to add song: %w", err)
 	}
 
-	return nil
+	return id, nil
 }
 
 func (s *Storage) SongExist(song string) error {
@@ -96,4 +104,37 @@ func (s *Storage) SongExist(song string) error {
 		return fmt.Errorf("song already exists")
 	}
 	return nil
+}
+
+func (s *Storage) DeleteSong(id int) error {
+	if id <= 0 {
+		return fmt.Errorf("invalid song ID: %d", id)
+	}
+
+	result, err := s.db.Exec("DELETE FROM songs WHERE id = $1", id)
+	if err != nil {
+		return fmt.Errorf("failed to delete song: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	}
+	if rowsAffected == 0 {
+		return fmt.Errorf("no song found with ID %d", id)
+	}
+
+	return nil
+}
+
+func (s *Storage) GetText(id int) (string, error) {
+	var text string
+	err := s.db.QueryRow("SELECT text FROM songs WHERE id = $1", id).Scan(&text)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", fmt.Errorf("song with ID %d not found", id)
+		}
+		return "", fmt.Errorf("failed to get song text: %w", err)
+	}
+	return text, nil
 }

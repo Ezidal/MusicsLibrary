@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 )
 
@@ -22,10 +23,12 @@ func (h *Handler) AddSong(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusBadRequest, "failed to decode song")
 		return
 	}
-	if h.storage.SongExist(songReq.SongName) != nil {
-		respondWithError(w, http.StatusBadRequest, "Song already exist")
-		return
-	}
+
+	// Check if song already exist
+	// if h.storage.SongExist(songReq.SongName) != nil {
+	// 	respondWithError(w, http.StatusBadRequest, "Song already exist")
+	// 	return
+	// }
 	// h.log.Debug("songReq: " + songReq.Group + " " + songReq.SongName)
 
 	params := url.Values{}
@@ -55,7 +58,7 @@ func (h *Handler) AddSong(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	date, err := time.Parse("02.01.2006", song.ReleaseDate)
+	date, err := time.Parse("02.01.2006", songResp.ReleaseDate)
 	if err != nil {
 		h.log.Error("Failed to parse date:", er.Err(err))
 	}
@@ -65,13 +68,14 @@ func (h *Handler) AddSong(w http.ResponseWriter, r *http.Request) {
 	song.Group = songReq.Group
 	song.SongName = songReq.SongName
 
-	err = h.storage.AddSong(song)
+	id, err := h.storage.AddSong(song)
 	if err != nil {
 		h.log.Error("failed to add song", er.Err(err))
 		respondWithError(w, http.StatusInternalServerError, "failed to add song")
 		return
 	}
-	respondWithJSON(w, http.StatusOK, "Song added")
-	h.log.Info("Song added")
+	idStr := strconv.Itoa(int(id))
+	respondWithJSON(w, http.StatusOK, map[string]string{"message": "Added song: " + song.SongName, "id": idStr})
+	h.log.Info("Song added, id: " + idStr)
 
 }

@@ -36,11 +36,12 @@ func main() {
 	// Add middleware
 	r.Use(middleware.LoggerMiddleware(log))
 
+	// Init Megahandler
 	handler := handlers.NewHandler(db, log, conf)
 	// Add handlers
 	r.HandleFunc("/songs", handler.GetSongs).Methods("GET")
-	// r.HandleFunc("/songs/{id}/text", handler.GetSongText).Methods("GET")
-	// r.HandleFunc("/songs/{id}", handler.DeleteSong).Methods("DELETE")
+	r.HandleFunc("/songs/{id}/text", handler.GetSongText).Methods("GET")
+	r.HandleFunc("/songs/{id}", handler.DeleteSong).Methods("DELETE")
 	// r.HandleFunc("/songs/{id}", handler.UpdateSong).Methods("PUT")
 	r.HandleFunc("/songs", handler.AddSong).Methods("POST")
 

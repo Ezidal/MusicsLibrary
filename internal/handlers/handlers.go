@@ -20,8 +20,10 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 
 type Storage interface {
 	GetAllSongs() ([]models.Song, error)
-	AddSong(song models.Song) error
+	AddSong(song models.Song) (int64, error)
 	SongExist(song string) error
+	DeleteSong(id int) error
+	GetText(id int) (string, error)
 }
 
 type Handler struct {
