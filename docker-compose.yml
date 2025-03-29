@@ -38,6 +38,22 @@ services:
       EXTERNAL_API_URL: ${EXTERNAL_API_URL}
     networks:
       - app-network
+    volumes:
+      - ./migrations:/migrations
+  pgadmin4:
+    image: elestio/pgadmin:latest
+    container_name: pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: sergeyefimov9593@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: test
+      PGADMIN_LISTEN_PORT: 8080
+    ports:
+    - "12200:8080"
+    volumes:
+    - ./servers.json:/pgadmin4/servers.json
+    networks:
+    - app-network
 
 networks:
   app-network:

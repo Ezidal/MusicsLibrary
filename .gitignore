@@ -1,5 +1,6 @@
 .*
 postgres_data
+pgadmin
 *.pdf
 !.env.example
 !.gitignore

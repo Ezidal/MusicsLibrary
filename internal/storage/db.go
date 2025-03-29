@@ -28,7 +28,7 @@ func Migrate(db *sql.DB, config *config.Config, log *slog.Logger) error {
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://./migrations",
+		"file:///migrations",
 		config.DBName,
 		driver,
 	)
@@ -67,6 +67,7 @@ func New(config *config.Config, log *slog.Logger) (*Storage, error) {
 			log.Error("failed to migrate %s", er.Err(err))
 			return nil, fmt.Errorf("failed to migrate: %w", err)
 		}
+		log.Debug("sml activated")
 	}
 
 	stmt, err := db.Prepare(`SELECT song_name FROM songs;`)
